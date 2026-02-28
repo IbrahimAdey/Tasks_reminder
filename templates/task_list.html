@@ -1,0 +1,242 @@
+{#<!DOCTYPE html>#}
+{#<html lang="en">#}
+{#<head>#}
+{#    <meta charset="UTF-8">#}
+{#    <title>Title</title>#}
+{#</head>#}
+{#<body>#}
+{##}
+{#</body>#}
+{#</html>#}
+{##}
+{#<!DOCTYPE html>#}
+{#<html>#}
+{#<head>#}
+{#    <title>Tasks_reminder</title>#}
+{#    <style>#}
+{#        body {#}
+{#            font-family: Arial, sans-serif;#}
+{#            margin: 20px;#}
+{#        }#}
+{#        ul {#}
+{#            list-style-type: none;#}
+{#            padding-left: 0;#}
+{#        }#}
+{#        li {#}
+{#            margin-bottom: 10px;#}
+{#        }#}
+{#        input[type="checkbox"] {#}
+{#            margin-right: 10px;#}
+{#        }#}
+{#        span.completed {#}
+{#            text-decoration: line-through;#}
+{#            color: gray;#}
+{#        }#}
+{#        form {#}
+{#            margin-bottom: 20px;#}
+{#        }#}
+{#    </style>#}
+{#</head>#}
+{#<body>#}
+{##}
+{#<h1>To-Do List</h1>#}
+{##}
+{#<!-- Inline Add Task Form -->#}
+{#<form id="add-task-form">#}
+{#    <input type="text" id="new-task-title" placeholder="New task title" required>#}
+{#    <button type="submit">Add</button>#}
+{#</form>#}
+{##}
+{#<ul id="task-list">#}
+{#    {% for task in tasks %}#}
+{#    <li data-id="{{ task.id }}">#}
+{#        <input type="checkbox" class="toggle-complete" {% if task.completed %}checked{% endif %}>#}
+{#        <span class="{% if task.completed %}completed{% endif %}">{{ task.title }}</span>#}
+{#        <a href="{% url 'task_update' task.id %}">Edit</a>#}
+{#        <a href="{% url 'task_delete' task.id %}">Delete</a>#}
+{#    </li>#}
+{#    {% endfor %}#}
+{#</ul>#}
+{##}
+{#<script>#}
+{#const csrftoken = '{{ csrf_token }}';#}
+{##}
+{#// Toggle completion#}
+{#document.querySelectorAll('.toggle-complete').forEach(checkbox => {#}
+{#    checkbox.addEventListener('change', function() {#}
+{#        const li = this.closest('li');#}
+{#        const taskId = li.dataset.id;#}
+{##}
+{#        fetch(`/toggle/${taskId}/`, {#}
+{#            method: 'POST',#}
+{#            headers: {#}
+{#                'X-CSRFToken': csrftoken,#}
+{#                'Content-Type': 'application/json'#}
+{#            },#}
+{#        })#}
+{#        .then(response => response.json())#}
+{#        .then(data => {#}
+{#            const span = li.querySelector('span');#}
+{#            if (data.completed) {#}
+{#                span.classList.add('completed');#}
+{#            } else {#}
+{#                span.classList.remove('completed');#}
+{#            }#}
+{#        });#}
+{#    });#}
+{#});#}
+{##}
+{#// Inline Add Task#}
+{#document.getElementById('add-task-form').addEventListener('submit', function(e) {#}
+{#    e.preventDefault();#}
+{#    const titleInput = document.getElementById('new-task-title');#}
+{#    const title = titleInput.value.trim();#}
+{#    if (!title) return;#}
+{##}
+{#    fetch('/add-ajax/', {#}
+{#        method: 'POST',#}
+{#        headers: {#}
+{#            'X-CSRFToken': csrftoken,#}
+{#            'Content-Type': 'application/json'#}
+{#        },#}
+{#        body: JSON.stringify({title: title})#}
+{#    })#}
+{#    .then(response => response.json())#}
+{#    .then(data => {#}
+{#        if (data.id) {#}
+{#            const ul = document.getElementById('task-list');#}
+{#            const li = document.createElement('li');#}
+{#            li.dataset.id = data.id;#}
+{#            li.innerHTML = `#}
+{#                <input type="checkbox" class="toggle-complete">#}
+{#                <span>${data.title}</span>#}
+{#                <a href="/edit/${data.id}/">Edit</a>#}
+{#                <a href="/delete/${data.id}/">Delete</a>#}
+{#            `;#}
+{#            // Add toggle event to new checkbox#}
+{#            li.querySelector('.toggle-complete').addEventListener('change', function() {#}
+{#                const checkbox = this;#}
+{#                const li = checkbox.closest('li');#}
+{#                const taskId = li.dataset.id;#}
+{##}
+{#                fetch(`/toggle/${taskId}/`, {#}
+{#                    method: 'POST',#}
+{#                    headers: {#}
+{#                        'X-CSRFToken': csrftoken,#}
+{#                        'Content-Type': 'application/json'#}
+{#                    },#}
+{#                })#}
+{#                .then(response => response.json())#}
+{#                .then(data => {#}
+{#                    const span = li.querySelector('span');#}
+{#                    if (data.completed) {#}
+{#                        span.classList.add('completed');#}
+{#                    } else {#}
+{#                        span.classList.remove('completed');#}
+{#                    }#}
+{#                });#}
+{#            });#}
+{##}
+{#            ul.appendChild(li);#}
+{#            titleInput.value = ''; // clear input#}
+{#        }#}
+{#    });#}
+{#});#}
+{#</script>#}
+{##}
+{#</body>#}
+{#</html>#}
+
+
+<html>
+<head>
+    <title>To-Do App AJAX</title>
+    <style>
+        .completed { text-decoration: line-through; color: gray; }
+        li { margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+<h1>To-Do List</h1>
+
+<form id="add-task-form">
+    <input type="text" id="new-task-title" placeholder="New task" required>
+    <button type="submit">Add</button>
+</form>
+
+<ul id="task-list"></ul>
+
+<script>
+const csrftoken = '{{ csrf_token }}';
+
+// Function to render tasks
+function renderTasks(tasks) {
+    const ul = document.getElementById('task-list');
+    ul.innerHTML = '';
+    tasks.forEach(task => {
+        const li = document.createElement('li');
+        li.dataset.id = task.id;
+        li.innerHTML = `
+            <input type="checkbox" class="toggle-complete" ${task.completed ? 'checked' : ''}>
+            <span class="${task.completed ? 'completed' : ''}">${task.title}</span>
+            <a href="#" class="delete-task">Delete</a>
+        `;
+        ul.appendChild(li);
+
+        attachToggleComplete(li.querySelector('.toggle-complete'));
+        attachDelete(li);
+    });
+}
+
+// Load tasks from server
+function loadTasks() {
+    fetch('/tasks-json/')
+        .then(res => res.json())
+        .then(data => renderTasks(data));
+}
+
+// Toggle complete function
+function attachToggleComplete(checkbox) {
+    checkbox.addEventListener('change', function() {
+        const li = this.closest('li');
+        const taskId = li.dataset.id;
+        fetch(`/toggle/${taskId}/`, { method: 'POST', headers: {'X-CSRFToken': csrftoken, 'Content-Type': 'application/json'} })
+            .then(res => res.json())
+            .then(data => {
+                const span = li.querySelector('span');
+                span.classList.toggle('completed', data.completed);
+            });
+    });
+}
+
+// Delete function
+function attachDelete(li) {
+    li.querySelector('.delete-task').addEventListener('click', function(e) {
+        e.preventDefault();
+        const taskId = li.dataset.id;
+        fetch(`/delete-ajax/${taskId}/`, { method: 'POST', headers: {'X-CSRFToken': csrftoken, 'Content-Type': 'application/json'} })
+            .then(res => res.json())
+            .then(data => { if(data.deleted) li.remove(); });
+    });
+}
+
+// Add task function
+document.getElementById('add-task-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const title = document.getElementById('new-task-title').value.trim();
+    if(!title) return;
+    fetch('/add-ajax/', { method: 'POST', headers: {'X-CSRFToken': csrftoken, 'Content-Type': 'application/json'}, body: JSON.stringify({title}) })
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById('new-task-title').value = '';
+            loadTasks(); // reload tasks from server
+        });
+});
+
+// Initial load
+loadTasks();
+</script>
+
+</body>
+</html>
